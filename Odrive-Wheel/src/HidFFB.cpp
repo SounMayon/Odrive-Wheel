@@ -28,16 +28,55 @@
 #include "cppmain.h"
 #include <math.h>
 
+namespace {
+static int16_t gimxU8ToS16(uint8_t value) {
+	if (value < 128) {
+		++value;
+	}
+	return static_cast<int16_t>((static_cast<int32_t>(value) - 128) * 32767 / 127);
+}
+
+static int16_t gimxU16ToS16(uint16_t value) {
+	int32_t signedValue = static_cast<int32_t>(value) - 32768;
+	if (signedValue < 0) {
+		++signedValue;
+	}
+	return static_cast<int16_t>(signedValue);
+}
+
+static int16_t gimxConditionCoefficient(uint8_t selector, bool highResolution, bool inverted) {
+	static const uint8_t lowResolutionNumerators[8] = {1, 2, 3, 4, 6, 8, 12, 16};
+	int32_t magnitude = highResolution
+		? (32767 * (selector & 0x0f)) / 15
+		: (32767 * lowResolutionNumerators[selector & 0x07]) / 16;
+	return static_cast<int16_t>(inverted ? -magnitude : magnitude);
+}
+
+static int16_t gimxSpringCoefficient(int16_t coefficient, uint8_t gain) {
+	// ODrive's default spring gain/scaler is 64/16. Normalize it here so a
+	// Logitech coefficient keeps its intended slope in the shared effect engine.
+	const float engineScale = ((static_cast<float>(gain) + 1.0f) / 256.0f) * 16.0f;
+	if (engineScale <= 0.0f) {
+		return 0;
+	}
+	float scaled = static_cast<float>(coefficient) / engineScale;
+	if (scaled > 32767.0f) scaled = 32767.0f;
+	if (scaled < -32767.0f) scaled = -32767.0f;
+	return static_cast<int16_t>(scaled);
+}
+}
+
+
 HidFFB::HidFFB(std::shared_ptr<EffectsCalculator> ec,uint8_t axisCount) : effects_calc(ec), effects(ec->effects),axisCount(axisCount)
 {
 	directionEnableMask = 1 << axisCount; // Direction enable bit is last bit after axis enable bits
 	// Initialize reports
 	blockLoad_report.effectBlockIndex = 1;
-	blockLoad_report.ramPoolAvailable = (effects.size()-used_effects)*sizeof(FFB_Effect);
+	blockLoad_report.ramPoolAvailable = (HID_MAX_EFFECTS-used_effects)*sizeof(FFB_Effect);
 	blockLoad_report.loadStatus = 1;
 
-	pool_report.ramPoolSize = effects.size()*sizeof(FFB_Effect);
-	pool_report.maxSimultaneousEffects = effects.size();
+	pool_report.ramPoolSize = HID_MAX_EFFECTS*sizeof(FFB_Effect);
+	pool_report.maxSimultaneousEffects = HID_MAX_EFFECTS;
 	pool_report.memoryManagement = 1;
 
 
@@ -96,6 +135,11 @@ void HidFFB::sendStatusReport(uint8_t effect){
 void HidFFB::hidOut(uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize){
 	fxUpdateEvent(); // use uint16_t for timer overflow handling if micros timer is used
 
+	if (report_id == GIMX_LOGITECH_REPORT_ID) {
+		processLogitechReport(buffer, bufsize);
+		return;
+	}
+
 	// FFB Output Message
 	const uint8_t* report = buffer;
 	uint8_t event_idx = report_id - FFB_ID_OFFSET;
@@ -152,12 +196,12 @@ void HidFFB::hidOut(uint8_t report_id, hid_report_type_t report_type, uint8_t co
 			// Bug 5: decrementa used_effects e atualiza ramPoolAvailable pra
 			// evitar underflow do pool após várias criações/liberações num jogo.
 			uint8_t eid = report[1];
-			if (eid > 0 && eid <= effects.size()) {
+			if (eid > 0 && eid <= HID_MAX_EFFECTS) {
 				effects_calc->free_effect(eid - 1);
 				if (used_effects > 0) {
 					used_effects--;
 				}
-				blockLoad_report.ramPoolAvailable = (effects.size() - used_effects) * sizeof(FFB_Effect);
+				blockLoad_report.ramPoolAvailable = (HID_MAX_EFFECTS - used_effects) * sizeof(FFB_Effect);
 			}
 			break;
 		}
@@ -263,7 +307,7 @@ void HidFFB::ffb_control(uint8_t cmd){
 
 
 void HidFFB::set_constant_effect(FFB_SetConstantForce_Data_t* data){
-	if(data->effectBlockIndex == 0 || data->effectBlockIndex > effects.size()){
+	if(data->effectBlockIndex == 0 || data->effectBlockIndex > HID_MAX_EFFECTS){
 		return;
 	}
 	cfUpdateEvent();
@@ -301,7 +345,7 @@ void HidFFB::new_effect(FFB_CreateNewEffect_Feature_Data_t* effect){
 	//reportFFBStatus.effectBlockIndex = index;
 	blockLoad_report.effectBlockIndex = index+1;
 	used_effects++;
-	blockLoad_report.ramPoolAvailable = (effects.size()-used_effects)*sizeof(FFB_Effect);
+	blockLoad_report.ramPoolAvailable = (HID_MAX_EFFECTS-used_effects)*sizeof(FFB_Effect);
 	blockLoad_report.loadStatus = 1;
 	sendStatusReport(index+1);
 	
@@ -314,7 +358,7 @@ void HidFFB::new_effect(FFB_CreateNewEffect_Feature_Data_t* effect){
  */
 void HidFFB::set_effect(FFB_SetEffect_t* effect){
 	uint8_t index = effect->effectBlockIndex;
-	if(index > effects.size() || index == 0)
+	if(index > HID_MAX_EFFECTS || index == 0)
 		return;
 
 	FFB_Effect* effect_p = &effects[index-1];
@@ -404,7 +448,7 @@ void HidFFB::set_effect(FFB_SetEffect_t* effect){
 	have no effect on joystick motion in the northwest-southeast direction.
  */
 void HidFFB::set_condition(FFB_SetCondition_Data_t *cond){
-	if(cond->effectBlockIndex == 0 || cond->effectBlockIndex > effects.size()){
+	if(cond->effectBlockIndex == 0 || cond->effectBlockIndex > HID_MAX_EFFECTS){
 		return;
 	}
 	// Bug 10: parameterBlockOffset empacota axis nos 4 bits inferiores + ordinal
@@ -445,7 +489,7 @@ void HidFFB::set_condition(FFB_SetCondition_Data_t *cond){
 }
 
 void HidFFB::set_effect_operation(FFB_EffOp_Data_t* report){
-	if(report->effectBlockIndex == 0 || report->effectBlockIndex > effects.size()){
+	if(report->effectBlockIndex == 0 || report->effectBlockIndex > HID_MAX_EFFECTS){
 		return; // Invalid ID
 	}
 	// Start or stop effect
@@ -484,7 +528,7 @@ void HidFFB::set_effect_operation(FFB_EffOp_Data_t* report){
 
 
 void HidFFB::set_envelope(FFB_SetEnvelope_Data_t *report){
-	if(report->effectBlockIndex == 0 || report->effectBlockIndex > effects.size()){
+	if(report->effectBlockIndex == 0 || report->effectBlockIndex > HID_MAX_EFFECTS){
 		return;
 	}
 	FFB_Effect *effect = &effects[report->effectBlockIndex - 1];
@@ -497,7 +541,7 @@ void HidFFB::set_envelope(FFB_SetEnvelope_Data_t *report){
 }
 
 void HidFFB::set_ramp(FFB_SetRamp_Data_t *report){
-	if(report->effectBlockIndex == 0 || report->effectBlockIndex > effects.size()){
+	if(report->effectBlockIndex == 0 || report->effectBlockIndex > HID_MAX_EFFECTS){
 		return;
 	}
 	FFB_Effect *effect = &effects[report->effectBlockIndex - 1];
@@ -507,7 +551,7 @@ void HidFFB::set_ramp(FFB_SetRamp_Data_t *report){
 }
 
 void HidFFB::set_periodic(FFB_SetPeriodic_Data_t* report){
-	if(report->effectBlockIndex == 0 || report->effectBlockIndex > effects.size()){
+	if(report->effectBlockIndex == 0 || report->effectBlockIndex > HID_MAX_EFFECTS){
 		return;
 	}
 	FFB_Effect* effect = &effects[report->effectBlockIndex-1];
@@ -520,6 +564,226 @@ void HidFFB::set_periodic(FFB_SetPeriodic_Data_t* report){
 }
 
 
+
+bool HidFFB::processLogitechReport(const uint8_t* buffer, uint16_t bufsize) {
+	if (buffer == nullptr) {
+		return false;
+	}
+
+	// TinyUSB normally strips the report ID before dispatch. Accept the ID in
+	// the payload as well, so the bridge remains compatible with raw HID paths.
+	const uint8_t* command = buffer;
+	if (bufsize >= GIMX_LOGITECH_REPORT_SIZE + 1 &&
+		command[0] == GIMX_LOGITECH_REPORT_ID) {
+		++command;
+		--bufsize;
+	}
+	if (bufsize < GIMX_LOGITECH_REPORT_SIZE) {
+		return false;
+	}
+
+	const uint8_t commandType = command[0] & 0x0f;
+	const uint8_t slotMask = (command[0] & 0xf0) >> 4;
+
+	if (commandType == 0x00 || commandType == 0x01) { // Download / Download and play
+		if (slotMask == 0 || (slotMask & (slotMask - 1)) != 0) {
+			return false; // A downloaded effect belongs to exactly one slot.
+		}
+		uint8_t slot = 0;
+		while (((slotMask >> slot) & 1u) == 0u && slot < GIMX_LOGITECH_SLOT_COUNT) {
+			++slot;
+		}
+		if (slot >= GIMX_LOGITECH_SLOT_COUNT) {
+			return false;
+		}
+		gimx_logitech_slots[slot].report.fill(0);
+		memcpy(gimx_logitech_slots[slot].report.data(), command, GIMX_LOGITECH_REPORT_SIZE);
+		gimx_logitech_slots[slot].downloaded = true;
+		if (commandType == 0x01) {
+			applyLogitechEffect(slot, true);
+		}
+		return true;
+	}
+
+	if (commandType == 0x02 || commandType == 0x03) { // Play / Stop
+		for (uint8_t slot = 0; slot < GIMX_LOGITECH_SLOT_COUNT; ++slot) {
+			if ((slotMask & (1u << slot)) == 0u) {
+				continue;
+			}
+			if (commandType == 0x03) {
+				applyLogitechEffect(slot, false);
+			} else if (gimx_logitech_slots[slot].downloaded) {
+				applyLogitechEffect(slot, true);
+			}
+		}
+		return true;
+	}
+	if (commandType == 0x0c) { // Refresh keeps a persistent effect alive; do not restart its filters.
+		return true;
+	}
+
+	// Extended commands and default-spring controls do not carry one of the
+	// downloaded slot effects handled in this first bridge increment.
+	return false;
+}
+
+void HidFFB::applyLogitechEffect(uint8_t slot, bool playing) {
+	if (slot >= GIMX_LOGITECH_SLOT_COUNT) {
+		return;
+	}
+	FFB_Effect& effect = effects[GIMX_LOGITECH_FIRST_EFFECT + slot];
+	if (!playing) {
+		if (effect.type != FFB_EFFECT_NONE) {
+			effect.state = 0;
+			effects_calc->logEffectState(effect.type, 0);
+		}
+		return;
+	}
+	if (!gimx_logitech_slots[slot].downloaded) {
+		return;
+	}
+
+	const uint8_t* report = gimx_logitech_slots[slot].report.data();
+	const uint8_t* parameters = report + 2;
+	const uint8_t forceType = report[1];
+	uint8_t effectType = FFB_EFFECT_NONE;
+	int16_t forceLevel = 0;
+	bool hasCondition = false;
+	int16_t negativeCoefficient = 0;
+	int16_t positiveCoefficient = 0;
+	int16_t center = 0;
+	uint16_t deadBand = 0;
+	uint16_t saturation = 0x7fff;
+
+	switch (forceType) {
+	case 0x00: // Logitech constant
+		effectType = FFB_EFFECT_CONSTANT;
+		forceLevel = gimxU8ToS16(parameters[slot]);
+		break;
+
+	case 0x08: // Variable: the non-ramping form is a constant level.
+	{
+		uint8_t level = 0x80;
+		uint8_t step = 0;
+		if (slot == 0) {
+			level = parameters[0];
+			step = parameters[2];
+		} else if (slot == 2) {
+			level = parameters[1];
+			step = parameters[3];
+		} else {
+			break;
+		}
+		if ((step & 0x0f) != 0 && (step >> 4) != 0) {
+			break; // Timed variable-force ramps are handled in a later increment.
+		}
+		effectType = FFB_EFFECT_CONSTANT;
+		forceLevel = gimxU8ToS16(level);
+		break;
+	}
+
+	case 0x01: // Logitech spring, 3-bit selectors
+	{
+		effectType = FFB_EFFECT_SPRING;
+		hasCondition = true;
+		const uint8_t selectorLow = parameters[2] & 0x07;
+		const uint8_t selectorHigh = (parameters[2] >> 4) & 0x07;
+		negativeCoefficient = gimxConditionCoefficient(selectorLow, false, parameters[3] & 0x01);
+		positiveCoefficient = gimxConditionCoefficient(selectorHigh, false, parameters[3] & 0x10);
+		const uint8_t d1 = parameters[0];
+		const uint8_t d2 = parameters[1];
+		center = gimxU8ToS16(static_cast<uint8_t>((static_cast<uint16_t>(d1) + d2) / 2));
+		deadBand = (d2 >= d1) ? static_cast<uint16_t>((static_cast<uint32_t>(d2 - d1) * 65535u) / 255u) : 0;
+		saturation = static_cast<uint16_t>((static_cast<uint32_t>(parameters[4]) * 65535u) / 255u);
+		break;
+	}
+
+	case 0x02: // Logitech damper, 3-bit selectors
+	{
+		effectType = FFB_EFFECT_DAMPER;
+		hasCondition = true;
+		negativeCoefficient = gimxConditionCoefficient(parameters[0] & 0x07, false, parameters[1] & 0x01);
+		positiveCoefficient = gimxConditionCoefficient(parameters[2] & 0x07, false, parameters[3] & 0x01);
+		break;
+	}
+
+	case 0x0b: // High-resolution spring (Driving Force Pro / G29)
+	{
+		effectType = FFB_EFFECT_SPRING;
+		hasCondition = true;
+		const uint8_t d1Low = (parameters[3] >> 1) & 0x07;
+		const uint8_t d2Low = (parameters[3] >> 5) & 0x07;
+		const uint16_t d1 = static_cast<uint16_t>((((static_cast<uint16_t>(parameters[0]) << 3) | d1Low) * 65535u) / 0x7ffu);
+		const uint16_t d2 = static_cast<uint16_t>((((static_cast<uint16_t>(parameters[1]) << 3) | d2Low) * 65535u) / 0x7ffu);
+		const uint8_t selectorLow = parameters[2] & 0x0f;
+		const uint8_t selectorHigh = (parameters[2] >> 4) & 0x0f;
+		negativeCoefficient = gimxConditionCoefficient(selectorLow, true, parameters[3] & 0x01);
+		positiveCoefficient = gimxConditionCoefficient(selectorHigh, true, parameters[3] & 0x10);
+		center = gimxU16ToS16(static_cast<uint16_t>((static_cast<uint32_t>(d1) + d2) / 2u));
+		deadBand = (d2 >= d1) ? static_cast<uint16_t>(d2 - d1) : 0;
+		saturation = static_cast<uint16_t>((static_cast<uint32_t>(parameters[4]) * 65535u) / 255u);
+		break;
+	}
+
+	case 0x0c: // High-resolution damper
+	{
+		effectType = FFB_EFFECT_DAMPER;
+		hasCondition = true;
+		negativeCoefficient = gimxConditionCoefficient(parameters[0] & 0x0f, true, parameters[1] & 0x01);
+		positiveCoefficient = gimxConditionCoefficient(parameters[2] & 0x0f, true, parameters[3] & 0x01);
+		break;
+	}
+
+	default:
+		break;
+	}
+
+	if (effectType == FFB_EFFECT_NONE) {
+		if (effect.type != FFB_EFFECT_NONE) {
+			effect.state = 0;
+			effects_calc->logEffectState(effect.type, 0);
+		}
+		effect.type = FFB_EFFECT_NONE;
+		return;
+	}
+
+	const uint8_t previousType = effect.type;
+	const bool wasPlaying = effect.state != 0;
+	if (wasPlaying && previousType != effectType) {
+		effects_calc->logEffectState(previousType, 0);
+	}
+	if (previousType != FFB_EFFECT_NONE && previousType != effectType) {
+		effects_calc->logEffectType(previousType, true);
+	}
+	effect = FFB_Effect{};
+	effect.type = effectType;
+	effect.state = 1;
+	effect.duration = FFB_EFFECT_DURATION_INFINITE;
+	effect.gain = 255;
+	effect.axisMagnitudes[0] = 1.0f;
+	effect.magnitude = forceLevel;
+
+	if (hasCondition) {
+		if (effectType == FFB_EFFECT_SPRING) {
+			negativeCoefficient = gimxSpringCoefficient(negativeCoefficient, effects_calc->getGainStruct().spring);
+			positiveCoefficient = gimxSpringCoefficient(positiveCoefficient, effects_calc->getGainStruct().spring);
+		}
+		effect.conditions[0].cpOffset = center;
+		effect.conditions[0].negativeCoefficient = negativeCoefficient;
+		effect.conditions[0].positiveCoefficient = positiveCoefficient;
+		effect.conditions[0].negativeSaturation = saturation;
+		effect.conditions[0].positiveSaturation = saturation;
+		effect.conditions[0].deadBand = deadBand;
+	}
+	set_filters(&effect);
+	effect.startTime = HAL_GetTick();
+	set_FFB(true);
+	if (previousType != effectType) {
+		effects_calc->logEffectType(effectType, false);
+	}
+	effects_calc->logEffectState(effectType, 1);
+}
+
 void HidFFB::reset_ffb(){
 	for(uint8_t i=0;i<effects.size();i++){
 		effects_calc->free_effect(i);
@@ -527,5 +791,9 @@ void HidFFB::reset_ffb(){
 	this->reportFFBStatus.status = (HID_ACTUATOR_POWER) | (HID_ENABLE_ACTUATORS);
 	// Bônus (par com Bug 5): reset limpo do contador e do pool disponível.
 	used_effects = 0;
-	blockLoad_report.ramPoolAvailable = effects.size() * sizeof(FFB_Effect);
+	blockLoad_report.ramPoolAvailable = HID_MAX_EFFECTS * sizeof(FFB_Effect);
+	for (auto& slot : gimx_logitech_slots) {
+		slot.downloaded = false;
+		slot.report.fill(0);
+	}
 }

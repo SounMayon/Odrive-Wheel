@@ -650,6 +650,7 @@ __ALIGN_BEGIN const uint8_t hid_2ffb_desc[USB_HID_2FFB_REPORT_DESC_SIZE] __ALIGN
 //			0xB1,0x00,                   //    Feature
 //			0xC0     ,    //    End Collection
 			HIDDESC_FFB_POOLREP,
+			HIDDESC_GIMX_LOGITECH_BRIDGE,
 //			0x09,0x7F,    //    Usage PID Pool Report
 //			0xA1,0x02,    //    Collection Datalink
 //				0x85,HID_ID_POOLREP+FFB_ID_OFFSET,                   //    Report ID 0x13
@@ -842,6 +843,7 @@ __ALIGN_BEGIN const uint8_t hid_2ffb_desc_32b[USB_HID_2FFB_REPORT_DESC_32B_SIZE]
 			HIDDESC_FFB_BLOCKLOADREP,
 
 			HIDDESC_FFB_POOLREP,
+			HIDDESC_GIMX_LOGITECH_BRIDGE,
 
   0xC0    /*     END_COLLECTION	             */
 };

@@ -236,9 +236,9 @@
 		   0x85,HID_ID_STATE+FFB_ID_OFFSET,    /*    Report ID 2*/\
 /*			   0x09,0x22,        Usage Effect Block Index*/\
 /*			   0x15,0x01,        Logical Minimum 1*/\
-/*			   0x25,MAX_EFFECTS,        Logical Maximum 28h (40d)*/\
+/*			   0x25,HID_MAX_EFFECTS,        Logical Maximum 28h (40d)*/\
 /*			   0x35,0x01,        Physical Minimum 1*/\
-/*			   0x45,MAX_EFFECTS,        Physical Maximum 28h (40d)*/\
+/*			   0x45,HID_MAX_EFFECTS,        Physical Maximum 28h (40d)*/\
 /*			   0x75,0x08,        Report Size 8*/\
 /*			   0x95,0x01,        Report Count 1*/\
 /*			   0x81,0x02,        Input (Variable)*/\
@@ -284,9 +284,9 @@ subcollection Effect Type
 		   0x85,HID_ID_EFFREP+FFB_ID_OFFSET,    /*    Report ID 1*/\
 		   0x09,0x22,    /*    Usage Effect Block Index*/\
 		   0x15,0x01,    /*    Logical Minimum 1*/\
-		   0x25,MAX_EFFECTS,    /*    Logical Maximum 28h (40d)*/\
+		   0x25,HID_MAX_EFFECTS,    /*    Logical Maximum 28h (40d)*/\
 		   0x35,0x01,    /*    Physical Minimum 1*/\
-		   0x45,MAX_EFFECTS,    /*    Physical Maximum 28h (40d)*/\
+		   0x45,HID_MAX_EFFECTS,    /*    Physical Maximum 28h (40d)*/\
 		   0x75,0x08,    /*    Report Size 8*/\
 		   0x95,0x01,    /*    Report Count 1*/\
 		   0x91,0x02,    /*    Output (Variable)*/\
@@ -352,9 +352,9 @@ subcollection Effect Type
 		   0x85,HID_ID_ENVREP+FFB_ID_OFFSET,         /*    Report ID 2*/\
 		   0x09,0x22,         /*    Usage Effect Block Index*/\
 		   0x15,0x01,         /*    Logical Minimum 1*/\
-		   0x25,MAX_EFFECTS,         /*    Logical Maximum 28h (40d)*/\
+		   0x25,HID_MAX_EFFECTS,         /*    Logical Maximum 28h (40d)*/\
 		   0x35,0x01,         /*    Physical Minimum 1*/\
-		   0x45,MAX_EFFECTS,         /*    Physical Maximum 28h (40d)*/\
+		   0x45,HID_MAX_EFFECTS,         /*    Physical Maximum 28h (40d)*/\
 		   0x75,0x08,         /*    Report Size 8*/\
 		   0x95,0x01,         /*    Report Count 1*/\
 		   0x91,0x02,         /*    Output (Variable)*/\
@@ -388,9 +388,9 @@ subcollection Effect Type
 		   0x85,HID_ID_CONDREP+FFB_ID_OFFSET,    /*    Report ID 3*/\
 		   0x09,0x22,    /*    Usage Effect Block Index*/\
 		   0x15,0x01,    /*    Logical Minimum 1*/\
-		   0x25,MAX_EFFECTS,    /*    Logical Maximum 28h (40d)*/\
+		   0x25,HID_MAX_EFFECTS,    /*    Logical Maximum 28h (40d)*/\
 		   0x35,0x01,    /*    Physical Minimum 1*/\
-		   0x45,MAX_EFFECTS,    /*    Physical Maximum 28h (40d)*/\
+		   0x45,HID_MAX_EFFECTS,    /*    Physical Maximum 28h (40d)*/\
 		   0x75,0x08,    /*    Report Size 8*/\
 		   0x95,0x01,    /*    Report Count 1*/\
 		   0x91,0x02,    /*    Output (Variable)*/\
@@ -447,9 +447,9 @@ subcollection Effect Type
 		   0x85,HID_ID_PRIDREP+FFB_ID_OFFSET,                   /*    Report ID 4*/\
 		   0x09,0x22,                   /*    Usage Effect Block Index*/\
 		   0x15,0x01,                   /*    Logical Minimum 1*/\
-		   0x25,MAX_EFFECTS,                   /*    Logical Maximum 28h (40d)*/\
+		   0x25,HID_MAX_EFFECTS,                   /*    Logical Maximum 28h (40d)*/\
 		   0x35,0x01,                   /*    Physical Minimum 1*/\
-		   0x45,MAX_EFFECTS,                   /*    Physical Maximum 28h (40d)*/\
+		   0x45,HID_MAX_EFFECTS,                   /*    Physical Maximum 28h (40d)*/\
 		   0x75,0x08,                   /*    Report Size 8*/\
 		   0x95,0x01,                   /*    Report Count 1*/\
 		   0x91,0x02,                   /*    Output (Variable)*/\
@@ -500,9 +500,9 @@ subcollection Effect Type
 		   0x85,HID_ID_CONSTREP+FFB_ID_OFFSET,         /*    Report ID 5*/\
 		   0x09,0x22,         /*    Usage Effect Block Index*/\
 		   0x15,0x01,         /*    Logical Minimum 1*/\
-		   0x25,MAX_EFFECTS,         /*    Logical Maximum 28h (40d)*/\
+		   0x25,HID_MAX_EFFECTS,         /*    Logical Maximum 28h (40d)*/\
 		   0x35,0x01,         /*    Physical Minimum 1*/\
-		   0x45,MAX_EFFECTS,         /*    Physical Maximum 28h (40d)*/\
+		   0x45,HID_MAX_EFFECTS,         /*    Physical Maximum 28h (40d)*/\
 		   0x75,0x08,         /*    Report Size 8*/\
 		   0x95,0x01,         /*    Report Count 1*/\
 		   0x91,0x02,         /*    Output (Variable)*/\
@@ -523,9 +523,9 @@ subcollection Effect Type
 		   0x85,HID_ID_RAMPREP+FFB_ID_OFFSET,         /*    Report ID 6*/\
 		   0x09,0x22,         /*    Usage Effect Block Index*/\
 		   0x15,0x01,         /*    Logical Minimum 1*/\
-		   0x25,MAX_EFFECTS,         /*    Logical Maximum 28h (40d)*/\
+		   0x25,HID_MAX_EFFECTS,         /*    Logical Maximum 28h (40d)*/\
 		   0x35,0x01,         /*    Physical Minimum 1*/\
-		   0x45,MAX_EFFECTS,         /*    Physical Maximum 28h (40d)*/\
+		   0x45,HID_MAX_EFFECTS,         /*    Physical Maximum 28h (40d)*/\
 		   0x75,0x08,         /*    Report Size 8*/\
 		   0x95,0x01,         /*    Report Count 1*/\
 		   0x91,0x02,         /*    Output (Variable)*/\
@@ -547,9 +547,9 @@ subcollection Effect Type
 /*			   0x85,HID_ID_CSTMREP+FFB_ID_OFFSET,         //    Report ID 7*/\
 /*			   0x09,0x22,         //    Usage Effect Block Index*/\
 /*			   0x15,0x01,         //    Logical Minimum 1*/\
-/*			   0x25,MAX_EFFECTS,         //    Logical Maximum 28h (40d)*/\
+/*			   0x25,HID_MAX_EFFECTS,         //    Logical Maximum 28h (40d)*/\
 /*			   0x35,0x01,         //    Physical Minimum 1*/\
-/*			   0x45,MAX_EFFECTS,         //    Physical Maximum 28h (40d)*/\
+/*			   0x45,HID_MAX_EFFECTS,         //    Physical Maximum 28h (40d)*/\
 /*			   0x75,0x08,         //    Report Size 8*/\
 /*			   0x95,0x01,         //    Report Count 1*/\
 /*			   0x91,0x02,         //    Output (Variable)*/\
@@ -591,9 +591,9 @@ subcollection Effect Type
 		   0x85,HID_ID_EFOPREP+FFB_ID_OFFSET,    /*    Report ID Ah (10d)*/\
 		   0x09,0x22,    /*    Usage Effect Block Index*/\
 		   0x15,0x01,    /*    Logical Minimum 1*/\
-		   0x25,MAX_EFFECTS,    /*    Logical Maximum 28h (40d)*/\
+		   0x25,HID_MAX_EFFECTS,    /*    Logical Maximum 28h (40d)*/\
 		   0x35,0x01,    /*    Physical Minimum 1*/\
-		   0x45,MAX_EFFECTS,    /*    Physical Maximum 28h (40d)*/\
+		   0x45,HID_MAX_EFFECTS,    /*    Physical Maximum 28h (40d)*/\
 		   0x75,0x08,    /*    Report Size 8*/\
 		   0x95,0x01,    /*    Report Count 1*/\
 		   0x91,0x02,    /*    Output (Variable)*/\
@@ -622,9 +622,9 @@ subcollection Effect Type
 		   0x85,HID_ID_BLKFRREP+FFB_ID_OFFSET,    /*    Report ID Bh (11d)*/\
 		   0x09,0x22,    /*    Usage Effect Block Index*/\
 		   0x15,0x01,    /*    Logical Minimum 1*/\
-		   0x25,MAX_EFFECTS,    /*    Logical Maximum 28h (40d)*/\
+		   0x25,HID_MAX_EFFECTS,    /*    Logical Maximum 28h (40d)*/\
 		   0x35,0x01,    /*    Physical Minimum 1*/\
-		   0x45,MAX_EFFECTS,    /*    Physical Maximum 28h (40d)*/\
+		   0x45,HID_MAX_EFFECTS,    /*    Physical Maximum 28h (40d)*/\
 		   0x75,0x08,    /*    Report Size 8*/\
 		   0x95,0x01,    /*    Report Count 1*/\
 		   0x91,0x02,    /*    Output (Variable)*/\
@@ -674,9 +674,9 @@ subcollection Effect Type
 /*			   0x85,HID_ID_SETCREP+FFB_ID_OFFSET,         //    Report ID Eh (14d)*/\
 /*			   0x09,0x22,         //    Usage Effect Block Index*/\
 /*			   0x15,0x01,         //    Logical Minimum 1*/\
-/*			   0x25,MAX_EFFECTS,         //    Logical Maximum 28h (40d)*/\
+/*			   0x25,HID_MAX_EFFECTS,         //    Logical Maximum 28h (40d)*/\
 /*			   0x35,0x01,         //    Physical Minimum 1*/\
-/*			   0x45,MAX_EFFECTS,         //    Physical Maximum 28h (40d)*/\
+/*			   0x45,HID_MAX_EFFECTS,         //    Physical Maximum 28h (40d)*/\
 /*			   0x75,0x08,         //    Report Size 8*/\
 /*			   0x95,0x01,         //    Report Count 1*/\
 /*			   0x91,0x02,         //    Output (Variable)*/\
@@ -747,10 +747,10 @@ subcollection Effect Type
 		0xA1,0x02,    /*    Collection Datalink*/\
 		0x85,HID_ID_BLKLDREP+FFB_ID_OFFSET,    /*    Report ID 0x12*/\
 		0x09,0x22,    /*    Usage Effect Block Index*/\
-		0x25,MAX_EFFECTS,    /*    Logical Maximum 28h (40d)*/\
+		0x25,HID_MAX_EFFECTS,    /*    Logical Maximum 28h (40d)*/\
 		0x15,0x01,    /*    Logical Minimum 1*/\
 		0x35,0x01,    /*    Physical Minimum 1*/\
-		0x45,MAX_EFFECTS,    /*    Physical Maximum 28h (40d)*/\
+		0x45,HID_MAX_EFFECTS,    /*    Physical Maximum 28h (40d)*/\
 		0x75,0x08,    /*    Report Size 8*/\
 		0x95,0x01,    /*    Report Count 1*/\
 		0xB1,0x02,    /*    Feature (Variable)*/\
@@ -777,6 +777,19 @@ subcollection Effect Type
 		0xB1,0x00,                   /*    Feature*/\
 		0xC0         //    End Collection
 #define HIDDESC_FFB_BLOCKLOADREP_SIZE 72
+
+#define HIDDESC_GIMX_LOGITECH_BRIDGE \
+		0x06,0x00,0xFF, /* Usage Page (Vendor Defined 0xFF00) */\
+		0x09,0x01,       /* Usage (GIMX Logitech FFB bridge) */\
+		0xA1,0x02,       /* Collection (Datalink) */\
+		0x85,GIMX_LOGITECH_REPORT_ID, /* Report ID */\
+		0x15,0x00,       /* Logical Minimum 0 */\
+		0x26,0xFF,0x00,  /* Logical Maximum 255 */\
+		0x75,0x08,       /* Report Size 8 */\
+		0x95,GIMX_LOGITECH_REPORT_SIZE, /* Report Count 7 */\
+		0x91,0x02,       /* Output (Data, Variable, Absolute) */\
+		0xC0
+#define HIDDESC_GIMX_LOGITECH_BRIDGE_SIZE 21
 
 #define HIDDESC_FFB_POOLREP \
 		0x09,0x7F,    /*    Usage PID Pool Report*/\
@@ -811,7 +824,7 @@ subcollection Effect Type
 		0xC0 //    End Collection
 #define HIDDESC_FFB_POOLREP_SIZE 67
 
-#define HIDDESC_FFB_DESCSIZE HIDDESC_FFB_STATEREP_SIZE + HIDDESC_FFB_POOLREP_SIZE + HIDDESC_FFB_BLOCKLOADREP_SIZE + HIDDESC_FFB_NEWEFREP_SIZE + HIDDESC_FFB_DEVCTRLREP_SIZE + HIDDESC_FFB_BLOCKFREEREP_SIZE + HIDDESC_FFB_EFOPREP_SIZE + HIDDESC_FFB_SETEFREP_SIZE + HIDDESC_FFB_SETRAMPREP_SIZE + HIDDESC_FFB_SETCFREP_SIZE + HIDDESC_FFB_SETPERIODICREP_SIZE + HIDDESC_FFB_SETENVREP_SIZE
+#define HIDDESC_FFB_DESCSIZE HIDDESC_FFB_STATEREP_SIZE + HIDDESC_FFB_POOLREP_SIZE + HIDDESC_FFB_BLOCKLOADREP_SIZE + HIDDESC_FFB_NEWEFREP_SIZE + HIDDESC_FFB_DEVCTRLREP_SIZE + HIDDESC_FFB_BLOCKFREEREP_SIZE + HIDDESC_FFB_EFOPREP_SIZE + HIDDESC_FFB_SETEFREP_SIZE + HIDDESC_FFB_SETRAMPREP_SIZE + HIDDESC_FFB_SETCFREP_SIZE + HIDDESC_FFB_SETPERIODICREP_SIZE + HIDDESC_FFB_SETENVREP_SIZE + HIDDESC_GIMX_LOGITECH_BRIDGE_SIZE
 
 
 
