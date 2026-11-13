@@ -325,7 +325,7 @@ ob `%.9g` in newlib-nano dieselben Texte liefert und ob die Werte dort wirklich 
 | Convert constant, spring, damper, and non-ramping variable native reports into the existing ODrive force engine | First native effect subset | Implementing |
 | Add timed variable, periodic/waveform, trapezoid/rectangle, auto-center spring, friction, default-spring and full command semantics | Complete G29 native coverage | Planned |
 | Implement PC PID custom-force download/sample playback so PC test tools can enumerate and simulate the full effect list | PC effect completeness | Planned |
-| Compile firmware and GIMX on GitHub Actions after each code increment | CI | In progress |
+| Compile firmware and GIMX on GitHub Actions after each code increment | CI | ODrive Actions enabled; first feature-branch build pending |
 | Verify USB report handling, force direction/strength, thermal/current limits, and PS4 game effects with the ODrive hardware | Physical validation | Deferred to user |
 
-This first bridge increment is not yet full G29 equivalence. Unsupported native types must stop safely and remain listed here until implemented.
+This first bridge increment is not yet full G29 equivalence. Unsupported native types must stop safely and remain listed here until implemented. GitHub Actions was enabled for this fork and its firmware build now runs on `feature/**` pushes; the first post-enable build is being triggered.
