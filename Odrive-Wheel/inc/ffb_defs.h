@@ -18,6 +18,14 @@
 #define FFB_ID_OFFSET 0x00
 #define MAX_EFFECTS 40
 
+// Four reserved effects mirror the Logitech G29 native effect slots. The
+// remaining entries stay available to standard HID PID 1.0 host software.
+#define GIMX_LOGITECH_REPORT_ID 0x30
+#define GIMX_LOGITECH_REPORT_SIZE 7
+#define GIMX_LOGITECH_SLOT_COUNT 4
+#define HID_MAX_EFFECTS (MAX_EFFECTS - GIMX_LOGITECH_SLOT_COUNT)
+#define GIMX_LOGITECH_FIRST_EFFECT HID_MAX_EFFECTS
+
 // HID Descriptor definitions - Axes
 #define HID_USAGE_X		0x30
 #define HID_USAGE_Y		0x31
@@ -275,8 +283,8 @@ typedef struct
 typedef struct
 	{
 	//uint8_t	reportId = HID_ID_POOLREP; // No report ID for tinyusb feature GET
-	uint16_t	ramPoolSize = MAX_EFFECTS;
-	uint8_t		maxSimultaneousEffects = MAX_EFFECTS;
+	uint16_t	ramPoolSize = HID_MAX_EFFECTS;
+	uint8_t		maxSimultaneousEffects = HID_MAX_EFFECTS;
 	uint8_t		memoryManagement = 1;	// 0=DeviceManagedPool (0/1), 1=SharedParameterBlocks (0/1)
 } __attribute__((packed)) FFB_PIDPool_Feature_Data_t;
 

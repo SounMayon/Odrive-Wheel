@@ -314,3 +314,19 @@ ob `%.9g` in newlib-nano dieselben Texte liefert und ob die Werte dort wirklich 
 - **Left over:** the comment in `Odrive-Wheel/Makefile` says "OVP trip = 59.92V". The trip level defaults to 30 V, 59.92 V is the default of the ramp.
 - **Left over:** `EffectsCalculator::saveFlash()` ignores its `Flash_Write` results. `sys.save!` and `sys.savestat?` therefore do not report all
   effect and filter write failures. Fix and test error propagation with the save workflow; see `docs/FOUNDATIONS.md` for what an `OK` means today.
+
+
+## GIMX native G29 force bridge
+
+**Target:** receive unchanged GIMX Logitech reports through HID report ID 0x30 and render the supported effects on the ODrive motor, while keeping the standard PC PID effect pool separate.
+
+| Step | Result | State |
+|---|---|---|
+| Add vendor HID OUT report 0x30 and keep four native Logitech slots outside the PC effect-block range | Transport and allocation isolation | Implementing |
+| Convert constant, spring, damper, and non-ramping variable native reports into the existing ODrive force engine | First native effect subset | Implementing |
+| Add timed variable, periodic/waveform, trapezoid/rectangle, auto-center spring, friction, default-spring and full command semantics | Complete G29 native coverage | Planned |
+| Implement PC PID custom-force download/sample playback so PC test tools can enumerate and simulate the full effect list | PC effect completeness | Planned |
+| Compile firmware and GIMX on GitHub Actions after each code increment | CI | ODrive firmware build passed ([run 43353355296](https://github.com/SounMayon/Odrive-Wheel/actions/runs/43353355296)) |
+| Verify USB report handling, force direction/strength, thermal/current limits, and PS4 game effects with the ODrive hardware | Physical validation | Deferred to user |
+
+This first bridge increment is not yet full G29 equivalence. Unsupported native types must stop safely and remain listed here until implemented. GitHub Actions was enabled for this fork and its firmware build now runs on `feature/**` pushes; the post-enable build passed, including the firmware build and clean rebuild steps.

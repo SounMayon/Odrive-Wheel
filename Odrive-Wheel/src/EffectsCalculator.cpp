@@ -1011,7 +1011,7 @@ void EffectsCalculator::free_effect(uint16_t idx){
  */
 int32_t EffectsCalculator::find_free_effect(uint8_t type){
 	if(type > FFB_EFFECT_NONE && type < FFB_EFFECT_CUSTOM+1){ // Check if it is a valid effect type
-		for(uint8_t i=0;i<effects.size();i++){
+		for(uint8_t i=0;i<HID_MAX_EFFECTS;i++){
 			if(effects[i].type == FFB_EFFECT_NONE){
 				return(i);
 			}

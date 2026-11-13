@@ -9,6 +9,7 @@
 #define HIDFFB_H_
 
 #include <UsbHidHandler.h>
+#include <array>
 #include "ffb_defs.h"
 #include "PersistentStorage.h"
 #include "Filters.h"
@@ -55,11 +56,19 @@ private:
 	void set_constant_effect(FFB_SetConstantForce_Data_t* effect);
 	void set_periodic(FFB_SetPeriodic_Data_t* report);
 	void set_effect_operation(FFB_EffOp_Data_t* report);
+	bool processLogitechReport(const uint8_t* buffer, uint16_t bufsize);
+	void applyLogitechEffect(uint8_t slot, bool playing);
 
 
 	void set_filters(FFB_Effect* effect);
 
 	uint8_t directionEnableMask; // Has to be adjusted if bit is not last bit after axis enable bits
+	struct GimxLogitechSlot {
+		std::array<uint8_t, GIMX_LOGITECH_REPORT_SIZE> report{};
+		bool downloaded = false;
+	};
+	std::array<GimxLogitechSlot, GIMX_LOGITECH_SLOT_COUNT> gimx_logitech_slots{};
+
 	uint16_t used_effects = 0;
 	bool ffb_active = false;
 	FFB_BlockLoad_Feature_Data_t blockLoad_report;
