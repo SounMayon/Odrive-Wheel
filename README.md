@@ -1,262 +1,146 @@
-# Odrive-Wheel — MKS XDrive Mini / ODESC V4.2 FFB Firmware
-
-Custom firmware for ODrive v0.5.6 running on **MKS XDrive Mini** and
-**ODESC V4.2** hardware (STM32F405-based clones of ODrive v3.6), adding
-full **HID Force Feedback** support to use the motor as a sim racing wheel.
+# ADDD
 
 <p align="center">
-  <a href="Odrive-Wheel/tools/simhub-plugin/USER_MANUAL.md"><b>🎮 SimHub plugin — the user interface of this fork →</b></a><br>
-  <sub>Reads the 1 kHz HID stream, syncs profile config via serial, adds 21 wheel-mappable actions. <a href="Odrive-Wheel/tools/simhub-plugin/USER_MANUAL.md">User manual</a>.</sub>
+  <img src="assets/branding/addd-blue-512.png" alt="ADDD logo" width="224">
 </p>
 
-> **How this fork is operated:** configuration happens in the SimHub plugin.
-> Its window can read the ODrive parameters so far. Editing them, the FFB tabs,
-> the setup wizard and the DFU flasher are planned there and not available yet
-> ([Package 1, steps 1b–1e](docs/packages/PKG1.md)). The HTML tool
-> `Odrive-Wheel/tools/odrive-wheel.html` stays in the repo as a reference and is
-> no longer developed. GitHub Pages is not part of this project.
-> Plan and hardware targets: [Roadmap](docs/ROADMAP.md), [Hardware](docs/HARDWARE.md).
+**Another DIY Direct Drive (Wheel)**
 
-<p align="center">
-  <img src="docs/screenshots/MKSXdriveMini.png" alt="MKS XDrive Mini board" width="420">
-  <img src="docs/screenshots/Overlay%20FFT.png" alt="PiP Overlay with live FFT spectrum analyzer" width="420">
-</p>
+Firmware and SimHub tools for DIY direct-drive racing wheels built from hoverboard or industrial servo motors.
+ADDD brings setup, calibration, configuration, Force Feedback tuning, backups, firmware updates and analysis into
+one English SimHub interface.
 
-<table align="center">
-  <tr>
-    <td width="50%">
-      <a href="docs/screenshots/01-Header.png">
-        <img src="docs/screenshots/01-Header.png" alt="Configuration tool — main overview"></a>
-    </td>
-    <td width="50%">
-      <a href="docs/screenshots/06-GPIOConfig.png">
-        <img src="docs/screenshots/06-GPIOConfig.png" alt="Inputs / GPIO config"></a>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <a href="docs/screenshots/07-FFB%20test.png">
-        <img src="docs/screenshots/07-FFB%20test.png" alt="FFB Force Test — built-in WebHID tester"></a>
-    </td>
-    <td width="50%">
-      <a href="docs/screenshots/04-Iracing%20overlay.png">
-        <img src="docs/screenshots/04-Iracing%20overlay.png" alt="iRacing overlay (Picture-in-Picture)"></a>
-    </td>
-  </tr>
-</table>
+[User manual](Odrive-Wheel/tools/simhub-plugin/USER_MANUAL.md) · [Hardware](docs/HARDWARE.md) ·
+[Build instructions](docs/BUILDING.md) · [Roadmap](docs/ROADMAP.md) · [Testing](docs/TESTING.md)
 
-<p align="center">
-  <a href="https://github.com/sponsors/eagabriel" target="_blank">
-    <img src="https://img.shields.io/badge/Sponsor%20on%20GitHub-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=EA4AAA"
-         alt="Sponsor on GitHub" height="80">
-  </a>
-  &nbsp;&nbsp;
-  <a href="https://www.buymeacoffee.com/eduardogabq" target="_blank">
-    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
-         alt="Buy me a coffee" height="80">
-  </a>
-  &nbsp;&nbsp;
-  <a href="#pix-brazil">
-    <img src="https://img.shields.io/badge/PIX-Brazil-32BCAD?style=for-the-badge&logoColor=white"
-         alt="Donate via PIX (Brazil)" height="80">
-  </a>
-</p>
+This README describes the complete ADDD application. Implementation progress and hardware verification are recorded
+in the [roadmap](docs/ROADMAP.md) and [test record](docs/TESTING.md).
 
-<p align="center">
-  <a href="https://discord.com/channels/704355326291607614/1499185654033158305" target="_blank">
-    <img src="https://img.shields.io/badge/Discussion%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white"
-         alt="Project discussion on Discord" height="40">
-  </a>
-</p>
+## One workflow for a DIY wheel
 
-<p align="center">
-  <sub>Questions, build logs, tuning tips and bug reports —
-  <a href="https://discord.com/channels/704355326291607614/1499185654033158305">join the project thread on Discord</a>.</sub>
-</p>
+### Setup and calibration
 
-> 💛 **Open-source, maintained on personal time.** If this firmware saved
-> you a few hundred bucks on a commercial wheelbase, please consider
-> [becoming a GitHub Sponsor](https://github.com/sponsors/eagabriel),
-> [buying a coffee](https://www.buymeacoffee.com/eduardogabq),
-> or [donating via PIX](#pix-brazil) — it really helps keep the project
-> going.
+- Select the matching MKS XDrive board and configure the motor, encoder, supply and brake resistor.
+- Work through guided motor and encoder calibration, force direction, mechanical center and operating limits.
+- Configure temperature sensing and an optional holding brake for motors that need one.
+- Keep calibration results traceable to the hardware, firmware and measurement conditions.
+- Enter motor data that calibration cannot determine, with explicit units and current conventions.
 
-Based on:
-- [ODrive Firmware v0.5.6](https://github.com/odriverobotics/ODrive) (motor control)
-- [OpenFFBoard](https://github.com/Ultrawipf/OpenFFBoard) (FFB stack: HidFFB + EffectsCalculator)
+### Force Feedback and tuning
 
-Community contributions:
-- [@aksc857-stack](https://github.com/aksc857-stack) — MT6835 21-bit SPI encoder: driver, threaded read path, atomic SPI arbiter guard, chip register access and CLI. Also velocity/acceleration from the encoder PLL, and the split of axis position invert from FFB torque invert
-- [@TelksBr](https://github.com/TelksBr) — [ODrive-Wheel-Forge](https://github.com/TelksBr/ODrive-Wheel-Forge): USB HID PID compatibility fix suite and thermal telemetry
-- [@simachines](https://github.com/simachines) — autogen tooling backup
+- USB HID PID / DirectInput Force Feedback: constant, spring, damper, friction, inertia, ramp and periodic effects.
+- Local axis effects, endstop priority, controlled startup, center damping and torque slew settings.
+- Filters, equalization and notch controls, with profiles for different games and vehicles.
+- Input and GPIO configuration, telemetry properties and wheel-mappable SimHub actions.
+- Motor-specific current-loop and encoder tuning, optional anticogging and observer-based comfort features.
 
-## 🚀 Quick start
+### Configuration, backup and recovery
 
-Install the [SimHub plugin](Odrive-Wheel/tools/simhub-plugin/USER_MANUAL.md).
-A guided setup in the plugin, from blank firmware to FFB responding in-game,
-is planned as [Package 1d](docs/packages/PKG1.md) and not available yet.
-Until then, [Getting started](docs/GETTING_STARTED.md) describes the first
-bring-up; it still refers to the local reference copy of the HTML tool.
+- Typed parameters, reviewed changes and readback, with RAM changes distinguished from permanent storage.
+- Configuration snapshots, file comparison, versioned backups and traceable calibration records.
+- Reviewed restore and firmware updates using images for the selected board.
+- Preservation of FFB settings, reserved calibration storage and ODrive configuration during protected updates.
+- A documented route back to a known working firmware and configuration.
 
-## 📚 Guides
+A catalog snapshot and a complete restore backup have different scopes. ADDD identifies what a file contains, its
+source, any failed reads and uncertain values; it does not infer flash persistence from a RAM read or a save request.
 
-- **[Getting started (long-form)](docs/GETTING_STARTED.md)** — first
-  flash routes (`dfu-util` and browser DFU), minimum safe motor
-  bring-up, Windows driver setup (Zadig).
-- **[How torque control works](docs/TORQUE_CONTROL.md)** — deep dive
-  into the FFB pipeline from Nm demand to motor current. Explains why
-  `pos_gain` / `vel_gain` are inert in TORQUE mode.
-- **[Tuning feeling](docs/TUNING_FEELING.md)**
-  ([PT](docs/TUNING_FEELING_PT.md)) — post-setup guide for shaping the
-  FFB chain: gains, filters, end-stop, EQ.
-- **[Building from source](docs/BUILDING.md)** — for when you want to
-  modify the firmware, sync with upstream OpenFFBoard, or investigate a
-  build issue.
-- **[SimHub plugin user manual](Odrive-Wheel/tools/simhub-plugin/USER_MANUAL.md)**
-  — install, panel walkthrough with screenshots, property reference,
-  mappable actions, profile workflow, troubleshooting.
+### Diagnosis and analysis
 
-## ✨ What you get
+- Clear-text errors, live status, operating-limit information and an exportable diagnostic report.
+- Logging, plots, FFT and dashboard/overlay data.
+- Guided test forces, coastdown and frequency sweeps to characterize the motor and mechanics.
+- Measurements of current response, processing delay, filter delay, runtime, jitter and missed deadlines.
 
-- **Full HID Force Feedback** via USB HID PID (DirectInput / Windows
-  FFB). Effects: Constant, Spring, Damper, Friction, Inertia, Ramp,
-  Periodic (Sine / Square / Triangle / Sawtooth). Nine PID
-  compatibility fixes in v1.1.0 restore FFB in titles where it was
-  silently broken (iRacing, AC, ACC, rFactor 2, Forza Motorsport, AMS2,
-  BeamNG, DiRT Rally, F1, EA WRC).
-  *Forza Horizon 5/6 uses Windows.Gaming.Input and still needs the
-  community EmuWheel workaround — see Discord.*
-- **Absolute encoders** — AS5047 (onboard MKS, 14-bit) and MagnTek
-  MT6835 (21-bit, ODESC V4.2 SPI port) as first-class citizens.
-  Incremental ABZ also supported.
-- **3-band EQ** in the FFB Filters tab (WEIGHT / CHASSIS / ROAD, ±12
-  dB), normalised on DC so cornering weight never changes as you tune.
-- **Tuning profiles** in their own tab — save your setup per car class,
-  switch in one click, share as JSON files.
-- **1 kHz HID telemetry** — `vel_estimate`, `Iq_measured`,
-  `torque_output`, `Vbus`, `Ibus`, `Ibrake` embedded in the input
-  report at native rate, so tools and dashboards read the wheel without
-  fighting the game for the serial channel.
-- **iRacing PiP overlay** — always-on-top window with DC Bus, Wheel and
-  live FFT panels, plus P_brake, P_motor and Clip OUT% indicators.
-- **Performance Test suite** — J via median `Iq·τ/α`, coastdown for
-  `b`/`τ`, frequency sweep with real Bode overlay on the filter chart.
-- **DFU flasher in the SimHub plugin** — planned
-  ([Package 1e](docs/packages/PKG1.md)), not available yet.
-- **SimHub plugin** — [Odrive-Wheel Telemetry](Odrive-Wheel/tools/simhub-plugin/USER_MANUAL.md):
-  reads all 1 kHz HID fields (position, velocity, Iq, torque, VBus,
-  IBus, brake current, FET/motor temps, ODrive errors) as SimHub
-  properties for dashboards; syncs every profile field over serial;
-  applies profiles with a click (and auto-per-game if you want);
-  exposes 21 wheel-mappable actions (fine/coarse inc-dec of FX master,
-  FX ratio, 3-band EQ + one-shot Zero-wheel-position).
+The goal is reproducible force with low measured latency. A higher execution rate, more filtering or a more complex
+motor model is evaluated against the actual wheel; it is not an automatic improvement. Hands-off estimation is a
+comfort feature, not an emergency-stop mechanism.
 
-The overlay, the Performance Test suite and the other analysis tools exist
-only in the reference HTML tool so far; moving them to the SimHub plugin is
-planned ([Package 2](docs/ROADMAP.md)). The per-tab details and tooltips also
-live there.
+## How ADDD works
 
-## Flash the firmware
+The game sends Force Feedback directly to the board over USB HID. Motor control and real-time force processing run
+on the board. SimHub provides configuration, diagnosis, profiles and analysis; it is not in the normal game-to-motor
+real-time torque path.
 
-A DFU flasher in the SimHub plugin is planned
-([Package 1e](docs/packages/PKG1.md)) and not available yet. Until then, flash
-with `dfu-util`; back up your FFB settings first, because the `.bin` also
-covers their flash sectors.
+Board-side protection handles operating limits and fault reactions. The plugin explains those states and refuses
+invalid actions early. The software stop requests IDLE over USB and lets the motor coast; it does not replace an
+independent hardware power cut-off.
 
-**First flash from a blank board:** hold **BOOT0** and press **RESET** (or
-power-cycle with BOOT0 held) to enter DFU mode via the built-in bootloader
-— no extra tooling needed to get the board discovered. On some Windows setups
-`0483:df11` needs the WinUSB driver — install it once with
-[Zadig](https://zadig.akeo.ie/). Full walkthrough in
-[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
+All configuration belongs in the SimHub plugin. The inherited HTML client is retained as a reference rather than a
+second product interface. GitHub Pages is not used.
 
-## Build from source
+## Hardware
 
-See **[docs/BUILDING.md](docs/BUILDING.md)** — CI, Windows and Linux
-build routes, submodule notes, and how to sync with upstream OpenFFBoard.
+The board family is **MKS XDrive Mini, MKS XDrive S and MKS XDrive**. The selected board, firmware target, wiring and
+measurement configuration must match. A firmware target label is not physical board detection.
 
-## Screenshots
+| Item | Configuration |
+|---|---|
+| Motor | Hoverboard or industrial servo motor with supported feedback and suitable drive characteristics |
+| Encoder | The appropriate incremental or absolute feedback path for the board and motor; resolver systems need compatible interface hardware |
+| Power supply | 24–48 V nominal, continuous output current, current headroom, optional short-time current and maximum duration |
+| Brake resistor | Decimal resistance above 0 up to and including 20 ohms, or a separate disabled state |
+| Temperature sensing | Supported board and motor sensor circuits with verified wiring and plausible readings |
+| Optional hardware | Holding brake, inputs/GPIO and independent power cut-off as required by the build |
 
-Additional views of the config tool:
+These input ranges are not electrical ratings of every board or motor. Supply current, phase current and regeneration
+are separate quantities. Repeating peak loads also need suitable recovery or duty-cycle data. Hardware-specific limits
+come from the actual components, not a universal preset.
 
-![Header detail](docs/screenshots/02-Header.png)
+See [Hardware, sensors and calibration](docs/HARDWARE.md) for the detailed requirements and verification records.
 
-![Header sidebar](docs/screenshots/03-Header.png)
+## Installation and builds
 
-![Encoder tab — Zero wheel position + AS5047 preset](docs/screenshots/05-Zero%20e%20encoder.png)
+- [User manual](Odrive-Wheel/tools/simhub-plugin/USER_MANUAL.md): SimHub installation and operation on Windows.
+- [Getting started](docs/GETTING_STARTED.md): setup requirements and bring-up guidance.
+- [Building from source](docs/BUILDING.md): ARM firmware and .NET plugin builds.
+- [Build Firmware](https://github.com/JustOneMorePrint/Odrive-Wheel/actions/workflows/build.yml): development firmware
+  artifacts for an exact commit, retained for 14 days.
 
-## Licenses
+Use images and plugin builds from this repository. Keep the working firmware and configuration records together.
+For source builds, the repository and technical paths retain their existing names:
 
-- **ODrive Firmware** — MIT — `ODrive-fw-v0.5.6/`
-- **OpenFFBoard** — GPLv3 — `OpenFFBoard-master/`
-- **Our own code** (`Odrive-Wheel/src`, `inc`, `tools`) — GPLv3
-
-Because GPL-licensed code from OpenFFBoard is included, the combined
-work (compiled firmware) is distributed under **GPLv3**. See `LICENSE`
-at the repo root and individual licenses in subdirectories.
-
-## 💛 Support the project
-
-A commercial direct-drive wheelbase with similar specs costs **R$3,000 to
-R$10,000+**. Odrive-Wheel turns a generic BLDC motor + a $40 board into
-something that competes with that — entirely open-source, no licensing,
-no subscriptions, no firmware lock-ins.
-
-Every hour invested here came out of nights and weekends. **If this
-project saved you real money**, please consider supporting it so I can
-keep adding features, fixing bugs, and answering questions:
-
-<p align="center">
-  <a href="https://github.com/sponsors/eagabriel" target="_blank">
-    <img src="https://img.shields.io/badge/Sponsor%20on%20GitHub-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=EA4AAA"
-         alt="Sponsor on GitHub" height="80">
-  </a>
-  &nbsp;&nbsp;
-  <a href="https://www.buymeacoffee.com/eduardogabq" target="_blank">
-    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
-         alt="Buy me a coffee" height="80">
-  </a>
-  &nbsp;&nbsp;
-  <a href="#pix-brazil">
-    <img src="https://img.shields.io/badge/PIX-Brazil-32BCAD?style=for-the-badge&logoColor=white"
-         alt="Donate via PIX (Brazil)" height="80">
-  </a>
-</p>
-
-**GitHub Sponsors** is the easiest way for recurring support and gives
-you visibility on the repo. **Buy Me a Coffee** is great for a one-time
-thanks. **PIX** (details below) is instant and free for donors in Brazil.
-Every contribution — no matter the size — makes a real difference.
-
-<a id="pix-brazil"></a>
-
-### 💚 PIX (Brazil)
-
-If you're in Brazil, PIX is the fastest way to donate — instant, no fees.
-Scan the QR below with your bank app, or copy the code and paste it into
-the "PIX Copia e Cola" field:
-
-<p align="center">
-  <img src="docs/pix-qr.png" alt="PIX QR code — recipient Eduardo Gabriel" width="260">
-</p>
-
-```
-00020126580014br.gov.bcb.pix0136a6228ec1-c293-4a94-8523-6b8b26c47e085204000053039865802BR5915EDUARDO.GABRIEL6009Sao Paulo610901227-20062210517daqr643133736513963048268
+```sh
+git clone --recurse-submodules https://github.com/JustOneMorePrint/Odrive-Wheel.git
+cd Odrive-Wheel
 ```
 
-<p align="center"><sub>Recipient: <b>Eduardo Gabriel</b> · São Paulo</sub></p>
+The plugin targets Windows, WPF and .NET Framework 4.8. See the build guide for the .NET SDK and SimHub reference
+assemblies. Build and installation identifiers are not changed merely by the product name.
 
-🙏 **Other ways to help, even for free:**
-- ⭐ Star the repo
-- 🐛 Open issues for bugs you find
-- 📣 Share with sim racing friends (Reddit, Discord, forums)
-- 📸 Post videos/photos of your build — tag the project
+## Codebase and acknowledgements
 
-## Status
+ADDD is an independently developed fork of [eagabriel/Odrive-Wheel](https://github.com/eagabriel/Odrive-Wheel).
+Its foundations are:
 
-Current stable release: **[v1.1.0](https://github.com/eagabriel/Odrive-Wheel/releases/latest)**.
-Firmware is validated end-to-end in iRacing; MT6835 encoder is out of
-experimental status; USB HID PID fix suite restores FFB in several
-titles where it was silently broken.
+- **eagabriel/Odrive-Wheel:** the original integration, firmware adaptations, HTML tools and initial SimHub plugin.
+- **[ODrive Firmware v0.5.6](https://github.com/odriverobotics/ODrive):** motor control, current regulation,
+  calibration and the ODrive interface.
+- **[OpenFFBoard](https://github.com/Ultrawipf/OpenFFBoard):** USB HID Force Feedback and effect processing.
+  The local FFB sources derive from v1.17.0; the repository also keeps a pinned upstream reference.
 
-Full changelog per release: **<https://github.com/eagabriel/Odrive-Wheel/releases>**.
+Existing community contributions remain credited:
+
+- [@aksc857-stack](https://github.com/aksc857-stack): MT6835 integration and related SPI, encoder and force-direction work.
+- [@TelksBr](https://github.com/TelksBr) / [ODrive-Wheel-Forge](https://github.com/TelksBr/ODrive-Wheel-Forge):
+  HID compatibility fixes and thermal telemetry.
+- [@simachines](https://github.com/simachines): autogen tooling support.
+
+FFBeast is a reference for setup and calibration design, not an included codebase.
+
+## Development and support
+
+Read [CLAUDE.md](CLAUDE.md), the [shared contracts](docs/FOUNDATIONS.md) and the relevant roadmap step before
+changing code. [Testing](docs/TESTING.md) records the evidence and open hardware checks. See also
+[Measurement](docs/MEASUREMENT.md), [Torque control](docs/TORQUE_CONTROL.md) and the
+[branding notes](assets/branding/README.md).
+
+Report problems in [this repository](https://github.com/JustOneMorePrint/Odrive-Wheel/issues), with the firmware
+build, board and encoder, plugin version, reproduction steps and a diagnostic report where available.
+Distinguish simulated results from observations on hardware.
+
+## License
+
+The combined firmware is distributed under **GPLv3**, as stated in the repository's [LICENSE](LICENSE).
+ODrive retains its [MIT license](ODrive-fw-v0.5.6/ODrive-fw-v0.5.6/LICENSE.md). The plugin and bundled components
+retain their applicable existing notices; the ADDD name does not change their licenses.

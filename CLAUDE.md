@@ -6,6 +6,12 @@ das Testvorgehen in `docs/TESTING.md`.
 
 ## Kontext
 
+- Product name: **ADDD — Another DIY Direct Drive (Wheel)**. Use this name in new user-facing documentation and
+  the application branding. Shared logo assets and usage are documented in `assets/branding/README.md`: blue for
+  documentation, white for SimHub. Existing repository, build, package and protocol names stay until an explicitly
+  scoped migration. Integrating or removing old application logos is Claude's code task, not part of a docs-only update.
+- The root README describes the complete product workflow. Actual implementation and validation status are maintained
+  in `docs/ROADMAP.md` and `docs/TESTING.md`; do not infer that a README feature has already been implemented or tested.
 - Product goal: a DIY direct drive for hoverboard and industrial servo motors, operated entirely through the
   English SimHub plugin. Reliable function, reproducible setup, low measured latency, understandable diagnosis.
 - Fork von `eagabriel/Odrive-Wheel`: ODrive-Firmware 0.5.6 (Motorregelung) plus
@@ -22,6 +28,13 @@ das Testvorgehen in `docs/TESTING.md`.
 - Die Alt/Neu-Schalter neuer Features gelten **global**. Sie sind nicht Teil der
   Plugin-Profile und werden beim Anwenden eines Profils nicht verändert.
 - Hardware tests are deferred at the user's request and stay listed as open in `docs/TESTING.md`.
+
+## Documentation scope
+
+Use the current contracts in `docs/ROADMAP.md`, `docs/FOUNDATIONS.md`, `docs/HARDWARE.md`, `docs/MEASUREMENT.md`,
+`docs/TESTING.md` and `docs/packages/PKG1.md` together with the production code. Distinguish planned behaviour from implemented behaviour.
+Legacy HTML-client guides, historical release notes, alternative integration notes and vendored documentation describe their original
+context; they do not establish this fork's current defaults, compatibility or validation. Explicit user instructions take precedence.
 
 ## Repo-Karte
 
@@ -111,6 +124,27 @@ Then:
    anything that is wrong or risky.
 8. Auto-fix applies to the PR it was turned on for, and ends with it. Claude does not merge.
 9. After the merge: update the status in `docs/ROADMAP.md` and the open tests in `docs/TESTING.md`.
+
+### Before reporting a PR as ready
+
+This review is part of the task and needs no additional approval round.
+
+1. State the applicable invariants and a small failure/transition matrix before implementation. For operations, include the relevant events
+   (Cancel, stop, reconnect, capability change, closing) at the boundaries before sending, after a reply and before final completion. Keep
+   related work in small, usable steps rather than combining several independent workflows in one PR.
+2. Trace the full production path against those invariants. Check the result object, visible state and exported output together. In particular,
+   check late cancellation, blocking work on the UI thread, unsupported certainty claims, invalid input types and numeric ranges, and cleanup
+   that must only remove files the operation created. Command syntax alone is no proof that an operation has no side effects.
+3. Use an independent reviewer with fresh context when available. Give it the requirements, relevant contracts, final diff and source. It must
+   look for concrete functional errors and missing failure cases, not treat the implementation narrative or green CI as proof. If no separate
+   reviewer is available, perform a distinct review pass and record that limitation.
+4. Reproduce confirmed findings with targeted, deterministic regressions, show them failing on the affected code, and fix them within the PR.
+   Use controlled hooks or barriers for timing cases. Test counts and successful mutations do not establish completeness. Avoid broad mutation
+   campaigns and repeated full-suite runs without a specific unresolved timing concern.
+5. Run the relevant builds and tests on the final code, and verify CI for the reported head. Review the corrections against the affected
+   invariants; repeat a full review only if new changes or findings justify it. Documentation-only changes need source/diff checks, not builds.
+6. Include the review findings, their resolution, evidence and remaining limits in the English final PR comment. Keep deferred hardware tests
+   explicitly open. This process does not authorize hardware commands or an automatic merge.
 
 **Handover after a finished PR.** A few lines are enough for a new session:
 
